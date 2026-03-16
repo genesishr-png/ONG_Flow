@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum para o Kanban de status da ONG
+enum OrganizationStatus {
+  DRAFT // Rascunho inicial
+  STATUTE_PREPARATION // Elaboração do Estatuto
+  ASSEMBLY_SCHEDULED // Assembleia Agendada
+  NOTARY_REGISTRATION // Registro em Cartório
+  CNPJ_ISSUANCE // Emissão de CNPJ
+  ACTIVE // Ativa
+}
+
+// Enum para os tipos de documentos baseados no processo de abertura
+enum DocumentType {
+  EDITAL_CONVOCACAO // Edital de Convocação
+  ESTATUTO_SOCIAL // Estatuto Social
+  ATA_FUNDACAO // Ata de Fundação/Eleição
+  LISTA_PRESENCA // Lista de Presença
+  OTHER
+}
+
+// Enum para os cargos da Diretoria (Board)
+enum BoardRole {
+  PRESIDENT // Presidente
+  VICE_PRESIDENT // Vice-Presidente
+  TREASURER // Tesoureiro (Não pode ser o Presidente no MROSC)
+  SECRETARY // Secretário
+  FISCAL_COUNCIL_MEMBER // Membro do Conselho Fiscal
+  DIRECTOR // Diretor Genérico
+}
+
+// Tabela de Usuários (Fundadores, Membros, Advogados, Contadores)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  cpf       String?  @unique // Necessário para qualificação societária
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  organizations Organization[] @relation("CreatedOrganizations") // ONGs criadas/gerenciadas por este usuário
+  boardRoles    BoardMember[]  // Cargos que ocupa em ONGs
+}
+
+// Tabela de Organizações (A ONG em si)
+model Organization {
+  id          String             @id @default(uuid())
+  name        String             // Nome da ONG (Razão Social proposta)
+  acronym     String?            // Sigla (Opcional)
+  purpose     String             @db.Text // Finalidade/Propósito Institucional (Muito importante para MROSC)
+  status      OrganizationStatus @default(DRAFT)
+  cnpj        String?            @unique // Preenchido no final do fluxo
+  foundedAt   DateTime?          // Data da assembleia de fundação
+  
+  // Endereço Sede (Obrigatório para o Estatuto e Cartório)
+  street      String?
+  number      String?
+  complement  String?
+  neighborhood String?
+  city        String?
+  state       String?
+  zipCode     String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Chaves Estrangeiras
+  creatorId   String
+  creator     User     @relation("CreatedOrganizations", fields: [creatorId], references: [id])
+
+  // Relacionamentos
+  boardMembers BoardMember[]
+  documents    Document[]
+}
+
+// Tabela de Cargos da Diretoria
+// Mantém o registro de quem ocupa qual cargo em qual ONG
+model BoardMember {
+  id             String       @id @default(uuid())
+  role           BoardRole
+  startDate      DateTime?    // Início do mandato
+  endDate        DateTime?    // Fim do mandato previsto
+  
+  // Chaves Estrangeiras
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Regra de validação de acúmulo de cargos deve ser feita na camada de Serviço (Backend),
+  // garantindo que, por exemplo, o mesmo 'userId' não tenha role 'PRESIDENT' e 'TREASURER'
+  // simultaneamente e que o Conselho Fiscal seja independente.
+  @@unique([userId, organizationId, role]) // Evita duplicidade do mesmo cargo para o mesmo usuário na mesma ONG
+}
+
+// Tabela de Documentos Gerados (Uploads / URLs)
+model Document {
+  id             String       @id @default(uuid())
+  type           DocumentType
+  title          String       // Nome descritivo do documento
+  fileUrl        String?      // URL do S3/Supabase Storage
+  htmlContent    String?      @db.Text // HTML formatado pronto para conversão para PDF ou histórico de edições
+  isSigned       Boolean      @default(false)
+  
+  // Chaves Estrangeiras
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}

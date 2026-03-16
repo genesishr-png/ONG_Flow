@@ -1,0 +1,23 @@
+{
+  "ongName": "Instituto de Inovação Social Nexo",
+  "acronym": "NEXO",
+  "city": "São Paulo",
+  "state": "SP",
+  "foundationDate": "15 de março de 2026",
+  "headquarters": {
+    "street": "Avenida Paulista",
+    "number": "1000",
+    "neighborhood": "Bela Vista",
+    "zipCode": "01310-100"
+  },
+  "purpose": "Promover a educação tecnológica e o desenvolvimento de software de código aberto para comunidades em vulnerabilidade social, visando a mitigação de desigualdades através da capacitação técnica.",
+  "boardMembers": [
+    { "name": "Ana Silva", "role": "PRESIDENT", "cpf": "111.222.333-44" },
+    { "name": "Carlos Mendes", "role": "VICE_PRESIDENT", "cpf": "222.333.444-55" },
+    { "name": "Roberto Dias", "role": "TREASURER", "cpf": "333.444.555-66" },
+    { "name": "Mariana Costa", "role": "SECRETARY", "cpf": "444.555.666-77" },
+    { "name": "João Oliveira", "role": "FISCAL_COUNCIL_MEMBER", "cpf": "555.666.777-88" },
+    { "name": "Luciana Souza", "role": "FISCAL_COUNCIL_MEMBER", "cpf": "666.777.888-99" },
+    { "name": "Fernanda Lima", "role": "FISCAL_COUNCIL_MEMBER", "cpf": "777.888.999-00" }
+  ]
+}
