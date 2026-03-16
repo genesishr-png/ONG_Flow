@@ -14,4 +14,4 @@ O projeto está dividido nos seguintes componentes:
 
 ## Como executar
 
-(Adicione aqui instruções específicas para rodar cada parte do projeto)
+Testes sapecas no momento :) 
